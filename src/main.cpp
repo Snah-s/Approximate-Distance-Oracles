@@ -153,10 +153,14 @@ public:
     }
     int minDist = INF;
     for (TV landmark : landmarks) {
-      int dist = distances[landmark][src] + distances[landmark][dest];
-      minDist = std::min(minDist, dist);
-    }
-    return minDist;
+      int distFromSrc = distances[landmark][src];
+      int distToDest = distances[landmark][dest];
+      if (distFromSrc < INF && distToDest < INF) {
+        int dist = distFromSrc + distToDest;
+        minDist = std::min(minDist, dist);
+        }
+      }
+      return minDist == INF ? -1 : minDist;
   }
 };
 
@@ -164,7 +168,7 @@ int main() {
   Graph<int> g;
   ADO<int> *ado = nullptr;
   std::unordered_map<int, std::unordered_map<int, int>> fwDistances;
-  int eleccion, id, idOrigen, idDestino, peso, k;
+  int choise, id, idU, idDest, weight, k;
 
   while (true) {
     std::cout << "Menú:" << std::endl;
@@ -174,9 +178,9 @@ int main() {
     std::cout << "4. Comparar tiempos de ejecución" << std::endl;
     std::cout << "5. Salir" << std::endl;
     std::cout << "Seleccione una opción: ";
-    std::cin >> eleccion;
+    std::cin >> choise;
 
-    switch (eleccion) {
+    switch (choise) {
       case 1: {
         std::cout << "Introduzca el ID del nodo: ";
         std::cin >> id;
@@ -186,18 +190,18 @@ int main() {
       }
       case 2: {
         std::cout << "Introduzca el ID del nodo origen: ";
-        std::cin >> idOrigen;
+        std::cin >> idU;
         std::cout << "Introduzca el ID del nodo destino: ";
-        std::cin >> idDestino;
-        std::cout << "Introduzca el peso de la arista: ";
-        std::cin >> peso;
+        std::cin >> idDest;
+        std::cout << "Introduzca el weight de la arista: ";
+        std::cin >> weight;
 
-        if (g.nodes.find(idOrigen) == g.nodes.end() || g.nodes.find(idDestino) == g.nodes.end()) {
+        if (g.nodes.find(idU) == g.nodes.end() || g.nodes.find(idDest) == g.nodes.end()) {
           std::cout << "Nodo origen o destino no existe." << std::endl;
           break;
         }
 
-        g.addEdge(idOrigen, idDestino, peso);
+        g.addEdge(idU, idDest, weight);
         std::cout << "Arista añadida." << std::endl;
         break;
       }
