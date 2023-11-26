@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include "VE.cpp"
 #include "Dijkstra.cpp"
+#include "Astar.cpp"
+
 
 using namespace std;
 
@@ -12,6 +14,7 @@ template <typename TE, typename TV>
     unordered_map<TE, unordered_map<TE, int>> landmarksDistances;
     vector<int> landmarksIdx;
     Dijkstra<TE, TV> dijkstra;
+    Astar<TE, TV> astar;
 
     void randomizeLandmarks(int numLandmarks) {
       srand(time(NULL));
@@ -28,43 +31,39 @@ template <typename TE, typename TV>
       }
 
       for (int i = 0; i < landmarks.size(); ++i) {
-        // dijkstra returns a map of distances from the landmark to all other landmarks
-        unordered_map<TE, int> distances = dijkstra.run(landmarks, i);
-        landmarksDistances[landmarks[i].data] = distances;
-      }
+        // astar returns a map of distances from the landmark to all other landmarks
+        for(int j = i + 1; j < landmarks.size(); ++j) {
+          // validate if there is saved distance from landmark i to landmark j
+          if(landmarksDistances[landmarks[i].data].find(landmarks[j].data) != landmarksDistances[landmarks[i].data].end()) {
+            continue;
+          }
 
-      // CALCULATE THE DISTANCE FROM LANDMARK TO LANDMARK - DIRECTLY, WITHOUT DIJKSTRA BECAUSE IT CALCS THE DISTANCE FROM LANDMARK TO ALL OTHER VERTEXES
-    }
-
-    void findNearestLandMark(Vertex<TE, TV> *vertex){
-      vector<pair<int, int>> landMarksPositions = vector<pair<int, int>>();
-
-      for (auto& landmarkIdx : landmarksIdx) {
-        landMarksPositions.push_back(vertexes[landmarkIdx].position);
-      }
-
-      // Calculate distance between vertex and landmarks using Manhattan distance
-      vector<int> landmarksDistance = vector<int>();
-      for(auto& landmarkPosition : landMarksPositions) {
-        int distance = abs(vertex->position.first - landmarkPosition.first) + abs(vertex->position.second - landmarkPosition.second);
-        landmarksDistance.push_back(distance);
-      }
-
-      // Find the minimum distance and return the landmark
-      int minDistance = numeric_limits<int>::max();
-      int minIdx = -1;
-
-      for (int i = 0; i < landmarksDistance.size(); ++i) {
-        if (landmarksDistance[i] < minDistance) {
-          minDistance = landmarksDistance[i];
-          minIdx = i;
+          // calculate the distance from landmark i to landmark j
+          unordered_map<TE, int> distances = astar.run(vertexes, landmarks[i].data, landmarks[j].data);
+          landmarksDistances[landmarks[i].data][landmarks[j].data] = distances[landmarks[j].data];
+          landmarksDistances[landmarks[j].data][landmarks[i].data] = distances[landmarks[j].data];
         }
       }
+    }
 
-      // validate if there is valid path between vertex and landmark
+    int findNearestLandMark(int vertexIdx){
+      Vertex<TE, TV> vertex = vertexes[vertexIdx];
 
+      // Calculate distance between vertex and landmarks using Manhattan distance
+      vector<pair<int, int>> landmarksDistance = vector<int>();
 
-      return landmarksIdx[minIdx];
+      for (auto& landmarkIdx : landmarksIdx) {
+        pair<int, int> landmarkPosition = vertexes[landmarkIdx].position;
+        int distance = abs(vertex->position.first - landmarkPosition.first) + abs(vertex->position.second - landmarkPosition.second);
+        landmarksDistance.push_back(pair(distance, landmarkIdx));
+      }
+
+     // Sort landmarksDistance landmarkId by distance
+      sort(landmarksDistance.begin(), landmarksDistance.end(), [](pair<int, int> a, pair<int, int> b) {
+        return a.first < b.first;
+      });
+
+      return landmarksDistance[0].second;
     }
 
   public:
@@ -86,14 +85,19 @@ template <typename TE, typename TV>
       calcLandmarkDistances();
     }
 
-    TE query(TE start, TE end) {
+    TE query(int startIdx, int endIdx) {
       // Find the nearest landmark for start and end
-      int startLandmark = findNearestLandMark(&vertexes[start]);
-      int endLandmark = findNearestLandMark(&vertexes[end]);
+      int startLandmarkIdx = findNearestLandMark(&vertexes[startIdx]);
+      int endLandmarkIdx = findNearestLandMark(&vertexes[endIdx]);
 
-      // VALIDATE IF LANDMARKS ARE CONNECTED
+      // Calculate the distance from start to startLandmark and end to endLandmark using A*
+      unordered_map<TE, int> startDistances = astar.run(vertexes, start, startLandmarkIdx);
+      unordered_map<TE, int> endDistances = astar.run(vertexes, end, endLandmarkIdx);
 
-      // Calculate the distance from start to startLandmark and end to endLandmark
-      
+      // Calculate the distance from startIdx to endIdx 
+      // approxDistance = (A -> landmarkA) + (landmarkA -> landmarkB) + (B->landmarkB) 
+      TE approxDistance = startDistances[startLandmarkIdx] + landmarksDistances[startLandmarkIdx][endLandmarkIdx] + endDistances[endLandmarkIdx];
+
+      return approxDistance;
     }
 };

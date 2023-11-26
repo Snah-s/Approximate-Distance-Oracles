@@ -11,14 +11,13 @@ using namespace std;
 template <typename TE, typename TV>
 class Astar{
   private:
-  std::vector<Vertex<TE, TV>> vertexes;
     int manhattanDistance(pair<int, int> start, pair<int, int> end) {
       return abs(start.first - end.first) + abs(start.second - end.second);
     }
 
   public:
-    Astar(std::vector<Vertex<TE, TV>> verts) : vertexes(verts) {}
-    unordered_map<TE, TE> run(int startIdx, int goalIdx) {
+    Astar() {}
+    unordered_map<TE, TE> run(vector<Vertex<TE, TV>> vertexes, int startIdx, int goalIdx) {
       for (auto& vertex : vertexes) {
         vertex.visited = false;
         vertex.parent = nullptr;

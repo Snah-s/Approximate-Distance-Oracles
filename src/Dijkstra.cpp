@@ -22,6 +22,7 @@ class Dijkstra {
       return minIdx;
     }
   public:
+    Dijkstra () {}
     unordered_map<TE, int> run(vector<Vertex<TE, TV>> vertexes, int vertexIdx){
       for (auto& vertex : vertexes) {
         vertex.visited = false;
