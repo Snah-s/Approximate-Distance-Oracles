@@ -1,9 +1,18 @@
+#include <limits>
+#include <list>
+#include <utility>
+
+using namespace std;
+
 template <typename TE, typename TV>
 struct Edge;
 
 template <typename TE, typename TV>
 struct Vertex {
   TV data;
+  TE g;
+  TE h;
+  TE f;
   bool visited;
   TE distance;
   list<Edge<TE, TV> *> edges;
