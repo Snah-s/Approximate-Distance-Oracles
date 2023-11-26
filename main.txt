@@ -1,0 +1,12 @@
+// Preprocesamiento
+1 Selección de landmarks aleatoria
+2. Calcular la distancia entre cada landmark. (Dijkstra)
+3. Almacenar información
+
+[hash del vertices escogio como landmark] => la distancia a cada landmark
+
+// Consulta
+1. Mapear landmark más cercano 
+2. Acceder a la distancia de un landmark a otro. 
+
+distancia = (A -> landmarkA) + (landmarkA -> landmarkB) + (B->landmarkB) 
