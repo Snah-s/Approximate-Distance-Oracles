@@ -25,7 +25,7 @@ class Astar {
   public:
     Astar() {}
 
-    unordered_map<TV, TE> run(vector<Vertex<TE, TV>>& vertices, int startIdx, int goalIdx) {
+    TE run(vector<Vertex<TE, TV>>& vertices, int startIdx, int goalIdx) {
       for (auto& vertex : vertices) {
         vertex.visited = false;
         vertex.parent = nullptr;
@@ -75,10 +75,7 @@ class Astar {
           }
         }
       }
-      unordered_map<TV, TE> distances;
-      for (const auto& vertex : vertices) {
-        distances[vertex.data] = vertex.g;
-      }
-      return distances;
+
+      return vertices[goalIdx].g;
     }
 };

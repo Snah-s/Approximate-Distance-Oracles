@@ -8,13 +8,13 @@ using namespace std;
 template <typename TE, typename TV>
 class Dijkstra {
   private:
-  int minDistance() {
-      TE minDist = numeric_limits<TE>::max();
+    int minDistance(vector<Vertex<TE, TV>> &vertexes) {
       int minIdx = -1;
+      TE minDistance = numeric_limits<TE>::max();
 
       for (int i = 0; i < vertexes.size(); ++i) {
-        if (!vertexes[i].visited && vertexes[i].distance < minDist) {
-          minDist = vertexes[i].distance;
+        if (!vertexes[i].visited && vertexes[i].distance <= minDistance) {
+          minDistance = vertexes[i].distance;
           minIdx = i;
         }
       }
@@ -23,17 +23,17 @@ class Dijkstra {
     }
   public:
     Dijkstra () {}
-    unordered_map<TE, int> run(vector<Vertex<TE, TV>> vertexes, int vertexIdx){
+    TE run(vector<Vertex<TE, TV>> &vertexes, int startIdx, int endIdx) {
       for (auto& vertex : vertexes) {
         vertex.visited = false;
         vertex.distance = numeric_limits<TE>::max();
         vertex.parent = nullptr;
       }
 
-      vertexes[vertexIdx].distance = 0;
+      vertexes[startIdx].distance = 0;
 
       while(true){
-        int currentIdx = minDistance();
+        int currentIdx = minDistance(vertexes);
 
         if(currentIdx == -1) break;
 
@@ -49,11 +49,6 @@ class Dijkstra {
         }
       }
 
-      unordered_map<TE, int> distances;
-      for (auto& vertex : vertexes) {
-        distances[vertex.data] = vertex.distance;
-      } 
-      
-      return distances;
+      return vertexes[endIdx].distance;
     }
 };
