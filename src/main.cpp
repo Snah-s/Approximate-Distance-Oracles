@@ -19,6 +19,11 @@ class ADO {
       srand(time(NULL));
       for (int i = 0; i < numLandmarks; ++i) {
         int randomIdx = rand() % vertexes.size();
+
+        while (find(landmarksIdx.begin(), landmarksIdx.end(), randomIdx) != landmarksIdx.end()) {
+          randomIdx = rand() % vertexes.size();
+        }
+
         landmarksIdx.push_back(randomIdx);
       }
     }
@@ -26,10 +31,15 @@ class ADO {
     void calcLandmarkDistances() {
       for (int i = 0; i < landmarksIdx.size(); ++i) {
         // Calculate distances from landmark[i] to all other landmarks
-        auto distances = astar.run(vertexes, landmarksIdx[i], landmarksIdx[i]);
         for (int j = 0; j < landmarksIdx.size(); ++j) {
-          if (i != j) {
+          if (i != j && 
+              landmarksDistances[vertexes[landmarksIdx[i]].data].find(vertexes[landmarksIdx[j]].data) == landmarksDistances[vertexes[landmarksIdx[i]].data].end() &&
+              landmarksDistances[vertexes[landmarksIdx[j]].data].find(vertexes[landmarksIdx[i]].data) == landmarksDistances[vertexes[landmarksIdx[j]].data].end() 
+            ) {
+            auto distances = astar.run(vertexes, landmarksIdx[i], landmarksIdx[j]);
+
             landmarksDistances[vertexes[landmarksIdx[i]].data][vertexes[landmarksIdx[j]].data] = distances[vertexes[landmarksIdx[j]].data];
+            landmarksDistances[vertexes[landmarksIdx[j]].data][vertexes[landmarksIdx[i]].data] = distances[vertexes[landmarksIdx[j]].data];
           }
         }
       }
@@ -71,14 +81,37 @@ class ADO {
     }
 
     TE query(int startIdx, int endIdx) {
-      int startLandmarkIdx = findNearestLandMark(startIdx);
-      int endLandmarkIdx = findNearestLandMark(endIdx);
+      // Validate if start and end indexes are landmarks
+      // if are landmarks, return landmarksDistances[startIdx][endIdx]
+      // else if startIdx is landmark
+      //   find nearest landmark from endIdx
+      //   return landmarksDistances[startIdx][endIdx] + landmarksDistances[startIdx][endLandmarkIdx]
+      // else if endIdx is landmark
+      //   find nearest landmark from startIdx
+      //   return landmarksDistances[startIdx][endIdx] + landmarksDistances[startLandmarkIdx][endIdx]
+      // else
+      //   find nearest landmark from startIdx
+      //   find nearest landmark from endIdx
+      //   return landmarksDistances[startIdx][startLandmarkIdx] + landmarksDistances[startLandmarkIdx][endLandmarkIdx] + landmarksDistances[endLandmarkIdx][endIdx]
+      
+      if(find(landmarksIdx.begin(), landmarksIdx.end(), startIdx) != landmarksIdx.end() && find(landmarksIdx.begin(), landmarksIdx.end(), endIdx) != landmarksIdx.end()){
+        return landmarksDistances[vertexes[startIdx].data][vertexes[endIdx].data];
+      }else if(find(landmarksIdx.begin(), landmarksIdx.end(), startIdx) != landmarksIdx.end()){
+        int endLandmarkIdx = findNearestLandMark(endIdx);
+        unordered_map<TE, int> endDistances = astar.run(vertexes, endIdx, endLandmarkIdx);
+        return landmarksDistances[vertexes[startIdx].data][vertexes[endLandmarkIdx].data] + endDistances[vertexes[endLandmarkIdx].data];
+      }else if(find(landmarksIdx.begin(), landmarksIdx.end(), endIdx) != landmarksIdx.end()){
+        int startLandmarkIdx = findNearestLandMark(startIdx);
+        unordered_map<TE, int> startDistances = astar.run(vertexes, startIdx, startLandmarkIdx);
+        return landmarksDistances[vertexes[startLandmarkIdx].data][vertexes[endIdx].data] + startDistances[vertexes[startLandmarkIdx].data];
+      }else{
+        int startLandmarkIdx = findNearestLandMark(startIdx);
+        int endLandmarkIdx = findNearestLandMark(endIdx);
 
-      unordered_map<TE, int> startDistances = astar.run(vertexes, startIdx, startLandmarkIdx);
-      unordered_map<TE, int> endDistances = astar.run(vertexes, endIdx, endLandmarkIdx);
+        unordered_map<TE, int> startDistances = astar.run(vertexes, startIdx, startLandmarkIdx);
+        unordered_map<TE, int> endDistances = astar.run(vertexes, endIdx, endLandmarkIdx);
 
-      TE approxDistance = startDistances[startLandmarkIdx] + landmarksDistances[startLandmarkIdx][endLandmarkIdx] + endDistances[endLandmarkIdx];
-
-      return approxDistance;
+        return landmarksDistances[vertexes[startLandmarkIdx].data][vertexes[endLandmarkIdx].data] + startDistances[vertexes[startLandmarkIdx].data] + endDistances[vertexes[endLandmarkIdx].data];
+      }
     }
 };
