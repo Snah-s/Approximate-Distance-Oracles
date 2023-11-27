@@ -1,3 +1,6 @@
+#ifndef VE_H
+#define VE_H
+
 #include <limits>
 #include <list>
 #include <utility>
@@ -30,3 +33,5 @@ struct Edge {
 
   Edge(Vertex<TE, TV> *start, Vertex<TE, TV> *end, TE w) : startVertex(start), endVertex(end), weight(w) {}
 };
+
+#endif // VE_H
