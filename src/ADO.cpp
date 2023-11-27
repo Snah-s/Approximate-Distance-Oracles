@@ -116,6 +116,12 @@ class ADO {
     }
 
   public:
+    ADO() {}
+    ~ADO() {
+      landmarksDistances.clear();
+      vertexes.clear();
+      landmarksIdx.clear();
+    }
     void addVertex(TV data, pair<int, int> pos) {
       vertexes.emplace_back(data, pos);
     }
@@ -203,7 +209,7 @@ class ADO {
       cout << "Astar: " << astarDistance << " in " << astarDuration.count() << " ms" << endl;
 
       // // Medir el tiempo de ejecución de ODA
-      preprocess(round(numVertexes * 0.01));
+      preprocess(ceil(numVertexes * 0.01)+1);
       auto adoStartTime = high_resolution_clock::now();
       TE adoDistance = query(startIdx, endIdx);
       auto adoEndTime = high_resolution_clock::now();
